@@ -9,7 +9,6 @@ from image_gen.fixer import PipeFixer
 from image_gen.image_gen import GameImageGenerator
 from torch.distributions import MultivariateNormal
 
-from data_loader import MarioDataset
 from data_loader import BinaryDataset
 from models.custom import Generator
 
@@ -103,7 +102,7 @@ if __name__ == "__main__":
     )
 
     # netG.load_state_dict(torch.load("./trained_models/netG_epoch_300000_0_32.pth", map_location=torch.device('cpu')))
-    netG.load_state_dict(torch.load("./fixed_input/netG_epoch_8.pth", map_location=torch.device('cpu')))
+    netG.load_state_dict(torch.load("./cluster_test/netG_epoch_8.pth", map_location=torch.device('cpu')))
 
     # 300000
     binary_map = get_binary_asset_map()
@@ -140,7 +139,7 @@ if __name__ == "__main__":
 
     generated_level = full_level
     gen.render(image_array=generated_level, sprite_dims=(16, 16))
-    gen.save_gen_level(img_name="trial_level_binary")
+    gen.save_gen_level(img_name="binary_cluster")
     # time.sleep(2)
     with open("full_level.pkl", "wb") as fp:
         pickle.dump(generated_level, fp)

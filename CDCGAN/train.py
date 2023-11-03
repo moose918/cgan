@@ -15,7 +15,6 @@ import torch.utils.data
 from torch.autograd import Variable
 from torchfusion.gan.applications import DCGANDiscriminator
 
-from data_loader import MarioDataset
 from data_loader import BinaryDataset
 from models.custom import Generator
 
@@ -68,7 +67,7 @@ def parse_arguments():
         help="Number of extra layers on gen and disc",
     )
     parser.add_argument(
-        "--experiment", default="fixed_input", help="Where to store samples and models" # todo None
+        "--experiment", default="cluster_test", help="Where to store samples and models" # todo None
     )
     parser.add_argument(
         "--adam", action="store_true", help="Whether to use adam (default is rmsprop)"
