@@ -23,6 +23,9 @@ from models.custom import Generator
 def parse_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument(
+        "--src_data", default="lvls.json", help="location of dataset"
+    )
+    parser.add_argument(
         "--nz", type=int, default=32, help="size of the latent z vector"
     )
     parser.add_argument("--ngf", type=int, default=64)
@@ -268,7 +271,7 @@ def train(
                     fake = netG(Variable(gen_input, volatile=True))
                 stitched = torch.cat((ref_frames, fake[:, :, :, 16:]), dim=3)
                 im = stitched.data.cpu().numpy()
-                im = im[:, :, 9:-9, 1:-2]
+                im = im[:, :, 8:-8, 1:-2]
                 # print('SHAPE fake',type(im), im.shape)
                 # print('SUM ',np.sum( im, axis = 1) )
 
@@ -288,8 +291,9 @@ def train(
 
         # do checkpointing
         # todo checkpointing done here
-        torch.save(netG.state_dict(), '{0}/netG_epoch_{1}.pth'.format(opt.experiment, epoch))
-        torch.save(netD.state_dict(), '{0}/netD_epoch_{1}.pth'.format(opt.experiment, epoch))
+        if epoch == opt.niter-1:
+            torch.save(netG.state_dict(), '{0}/netG_epoch_{1}.pth'.format(opt.experiment, epoch))
+            torch.save(netD.state_dict(), '{0}/netD_epoch_{1}.pth'.format(opt.experiment, epoch))
 
 CHANNEL_SIZE = 2 # 13
 Z_DIM = 2 # 13
@@ -313,7 +317,7 @@ def main():
         print("WARNING: You have a CUDA device, so you should probably run with --cuda")
 
     map_size = 32
-    data = BinaryDataset() # todo MarioDataset()
+    data = BinaryDataset(opt.src_data) # todo MarioDataset()
     # data =  MarioDataset()
     conditional_channels = [0, 1]  # channels on which generator is conditioned on
     # todo conditional_channels = [0, 1, 6, 7]  # channels on which generator is conditioned on
