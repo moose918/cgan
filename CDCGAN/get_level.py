@@ -118,51 +118,57 @@ if __name__ == "__main__":
     )
 
     # netG.load_state_dict(torch.load("./trained_models/netG_epoch_300000_0_32.pth", map_location=torch.device('cpu')))
-    #netG.load_state_dict(torch.load("./cluster_test/netG_epoch_8.pth", map_location=torch.device('cpu')))
-    netG.load_state_dict(torch.load("/datasets/mgumpu/sample_cluster/netG_epoch_30000_0_32.pth", map_location=torch.device('cpu')))
+    # netG.load_state_dict(torch.load("netG_epoch_99.pth", map_location=torch.device('cpu')))
+    # netG.load_state_dict(torch.load("netG_epoch_4999.pth", map_location=torch.device('cpu')))
+    netG.load_state_dict(torch.load("netG_epoch_4999.pth", map_location=torch.device('cpu')))
+    # netG.load_state_dict(torch.load("/datasets/mgumpu/sample_cluster/netG_epoch_30000_0_32.pth", map_location=torch.device('cpu')))
 
     # 300000
     binary_map = get_binary_asset_map()
     gen = GameImageGenerator(asset_map=binary_map)
-    prev_frame, curr_frame = dataset[[120]]  # 51
-    # prev_frame, curr_frame = dataset[[torch.randint(0, len(dataset), (1,))]]
+    # prev_frame, curr_frame = dataset[[120]]  # 51
+    prev_frame, curr_frame = dataset[[torch.randint(0, len(dataset), (1,))]]
 
     full_level = None
 
-    PART = -2
+    PART = -4
     MAX_ITER = 1
     for i in range(5):
 
         noise = torch.rand((1, 1, 16, 16)).normal_(0, 1)
+        noise_c = torch.rand((1, 2, 16, 16)).normal_(0, 1)
 
         if i == 0:
             gen_input = torch.cat(
-                (noise, prev_frame[:, conditional_channels, 8:-8, :]), dim=1
+                # (noise, prev_frame[:, conditional_channels, 8:-8, :]), dim=1
+                (noise, noise_c), dim=1
             )
         else:
             gen_input = torch.cat(
-                (noise, prev_frame[:, conditional_channels, 8:-8, -16:]), dim=1
+                # (noise, prev_frame[:, conditional_channels, 8:-8, -16:]), dim=1
                 # (noise, prev_frame[:, conditional_channels, 8:-8, :-16]), dim=1
+                (noise, noise_c), dim=1
             )
 
         fake = netG(gen_input).data
 
-        # todo level_frame = fake[:, :, 8:-8, 16:PART].data.cpu().numpy()  # without padding
+        # level_frame = fake[:, :, 8:-8, 16:PART].data.cpu().numpy()  # without padding
         level_frame = fake[:, :, 8:-8, -16:].data.cpu().numpy()  # without padding
 
         prev_frame = torch.cat(
-        # (curr_frame[:, :, :, PART:], fake[:, :, :, 16:PART]), dim=3
-        (curr_frame[:, :, :, :], fake[:, :, :, :-16]), dim=3
+        (curr_frame[:, :, :, PART:], fake[:, :, :, 16:PART]), dim=3
+        # (curr_frame[:, :, :, :], fake[:, :, :, :-16]), dim=3
         )  # with padding added to front
         curr_frame = fake[:, :, :, -16:]
 
         if full_level is None:
             stitched = torch.cat(
-                (prev_frame, curr_frame), dim=3  # todo(prev_frame, fake[:, :, :, 2:]), dim=3
+                (prev_frame, fake[:, :, :, :]), dim=3
+                # (prev_frame, curr_frame), dim=3
             )  # stitch the context frame
 
-            #todo stitched = np.argmax(stitched[:, :, 8:-8, :PART].data.cpu().numpy(), axis=1)
-            stitched = np.argmax(stitched[:, :, 8:-8, :].data.cpu().numpy(), axis=1)
+            stitched = np.argmax(stitched[:, :, 8:-8, :PART].data.cpu().numpy(), axis=1)
+            # stitched = np.argmax(stitched[:, :, 8:-8, :].data.cpu().numpy(), axis=1)
 
             full_level = stitched[0]
         else:

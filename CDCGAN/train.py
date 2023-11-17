@@ -172,16 +172,6 @@ def train(
                 i += 1
                 context_frame, out_frame = (batch_data[0], batch_data[1])
 
-                if False:
-                    # im = data.cpu().numpy()
-                    print(batch_data.shape)
-                    real_cpu = combine_images(
-                        tiles2image(np.argmax(batch_data, axis=1), z_dims=z_dims)
-                    )
-                    print(real_cpu)
-                    plt.imsave("{0}/real_samples.png".format(opt.experiment), real_cpu)
-                    exit()
-
                 netD.zero_grad()
                 # batch_size = num_samples #real_cpu.size(0)
 
